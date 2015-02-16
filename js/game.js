@@ -12,6 +12,11 @@ var maxGridY = 80;
 var gridW = this.maxGridX - this.minGridX;
 var gridH = this.maxGridY - this.minGridY;
 
+var _ants = [];
+
+var dirtGroup;
+var antsGroup;
+
 function Game() {
   var phaser;
   var cursor;
@@ -27,11 +32,11 @@ Game.prototype.init = function() {
 };
 
 Game.prototype.preload = function() {
-  this.game.load.spritesheet('dirt', '../img/dirt.png', 16, 16, 10)
-  this.game.load.spritesheet('ant', '../img/ant.png', 16, 16, 2)
-  this.game.load.image('cursor', '../img/cursor.png')
-  this.game.load.image('dig', '../img/dig.png')
-  this.game.load.image('grass', '../img/grass.png')
+  this.game.load.spritesheet('dirt', '../img/dirt.png', 16, 16, 10);
+  this.game.load.spritesheet('ant', '../img/ant.png', 16, 16, 2);
+  this.game.load.image('cursor', '../img/cursor.png');
+  this.game.load.image('dig', '../img/dig.png');
+  this.game.load.image('grass', '../img/grass.png');
 };
 
 Game.prototype.create = function() {
@@ -43,7 +48,11 @@ Game.prototype.create = function() {
     // Create "world"
     this.game.stage.backgroundColor = '#00B2D3';
 
-    var ants = this.game.add.group();
+    dirtGroup = this.game.add.group();
+    dirtGroup.z = 2;
+
+    antsGroup = this.game.add.group();
+    antsGroup.z = 1;
 
     var tile;
     for(var x = minGridX; x < maxGridX; x++) {
@@ -52,16 +61,21 @@ Game.prototype.create = function() {
           var height = y;
 
           var clr = game.intBetween(0, 11);
-          tile = this.game.add.sprite(x*tileSize, y*tileSize, 'dirt', clr);
+          tile = dirtGroup.create(x*tileSize, y*tileSize, 'dirt', clr);
           game.onTileSelected(tile);
 
           if (height == dirtStartY) {
-            tile = this.game.add.sprite(x*tileSize, y*tileSize, 'grass');
+            tile = dirtGroup.create(x*tileSize, y*tileSize, 'grass');
             game.onTileSelected(tile);
           }
         }
       }
     }
+
+    //create ants
+    var a = new Ant(-20, -15, antsGroup);
+    a.create();
+    _ants.push(a);
 
     // Create cursor object
     game.cursor = this.game.add.sprite(0, 0, 'cursor');
@@ -69,7 +83,7 @@ Game.prototype.create = function() {
 
     this.cursors = this.game.input.keyboard.createCursorKeys();
     // Set the camera to top
-    this.game.camera.x = gridW / 2;
+    this.game.camera.x = (minGridX*tileSize) / 2;
     this.game.camera.y = minGridY * tileSize;
     // this.game.input.onDown.add(toggle, this);
 };
@@ -115,6 +129,8 @@ Game.prototype.update = function() {
   if (this.cursors.right.isDown) {
     this.game.camera.x += 10;
   }
+
+  _ants[0].update();
 };
 
 Game.prototype.render = function() {
